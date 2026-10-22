@@ -11,6 +11,7 @@ from starlette.background import BackgroundTask
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 
+from .emotions import Emotion
 from .engine import ElevenXEngine
 
 app = FastAPI(title="ElevenX", version="0.1.1")
@@ -19,6 +20,7 @@ _engine_lock = threading.Lock()
 # XTTS models and GPU contexts are not assumed to be safe for concurrent calls.
 # Reject overlapping requests rather than allowing an unbounded queue to build up.
 _synthesis_slot = threading.Lock()
+_WEB_APP = Path(__file__).resolve().parent / "static" / "index.html"
 
 
 def get_engine() -> ElevenXEngine:
@@ -30,19 +32,41 @@ def get_engine() -> ElevenXEngine:
     return _engine
 
 
+@app.get("/", include_in_schema=False)
+def web_app() -> FileResponse:
+    """Serve the local Voice Studio frontend."""
+    if not _WEB_APP.is_file():
+        raise HTTPException(status_code=500, detail="ElevenX web interface is missing")
+    return FileResponse(_WEB_APP, media_type="text/html; charset=utf-8")
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "ElevenX", "mode": "complete-waveform"}
+    return {"status": "ok", "service": "ElevenX", "interface": "web", "mode": "complete-waveform"}
 
 
 @app.post("/v1/synthesize")
 async def synthesize(
     text: str = Form(..., max_length=5000),
-    language: str = Form("en"),
+    language: str = Form("en", min_length=2, max_length=12),
     emotion: str = Form("neutral"),
+    consent: bool = Form(...),
     reference_audio: UploadFile = File(...),
 ) -> FileResponse:
     """Generate a WAV, avoiding overlapping model calls and cleaning temporary files."""
+    if not consent:
+        await reference_audio.close()
+        raise HTTPException(status_code=403, detail="Confirm permission to use the reference voice")
+    if not text.strip():
+        await reference_audio.close()
+        raise HTTPException(status_code=422, detail="Text must not be empty")
+    try:
+        selected_emotion = Emotion(emotion)
+    except ValueError as exc:
+        await reference_audio.close()
+        choices = ", ".join(item.value for item in Emotion)
+        raise HTTPException(status_code=422, detail=f"Unsupported emotion. Choose one of: {choices}") from exc
+
     suffix = Path(reference_audio.filename or "reference.wav").suffix.lower()
     if suffix not in {".wav", ".flac", ".ogg", ".aiff", ".aif"}:
         await reference_audio.close()
@@ -81,7 +105,7 @@ async def synthesize(
 
         engine = get_engine()
         # Keep blocking XTTS inference off the event loop so health/UI requests stay responsive.
-        result = await run_in_threadpool(engine.synthesize, text, reference_path, language, emotion)
+        result = await run_in_threadpool(engine.synthesize, text.strip(), reference_path, language, selected_emotion.value)
         await run_in_threadpool(engine.save_wav, result, output_path)
 
         def cleanup() -> None:

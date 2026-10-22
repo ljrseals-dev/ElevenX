@@ -42,6 +42,10 @@ ElevenX/
     └── test_api.py
 ```
 
+## Voice Studio
+
+Run the local API, then open `http://127.0.0.1:8000/` to use the bundled browser interface. The UI supports script entry, language and delivery-style selection, an explicit voice-permission confirmation, reference audio upload, in-browser playback, and WAV download. Keep the service bound to loopback; this interface does not add authentication or make the API safe to expose publicly.
+
 ## Install
 
 Use Python 3.10 or 3.11 in a clean virtual environment. Deep-learning package compatibility varies by OS/GPU; install a matching PyTorch build first if needed.
