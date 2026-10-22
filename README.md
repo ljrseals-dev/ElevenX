@@ -69,7 +69,10 @@ FastAPI client --> /v1/synthesize --> temporary input/output files --> WAV respo
 | `src/elevenx/speakers.py` | Validates reference audio and lazily loads SpeechBrain ECAPA for speaker embeddings. |
 | `src/elevenx/api.py` | Exposes the local FastAPI health and synthesis endpoints. |
 | `config.yaml` | Defaults for model, sample rate, reference duration, presets, codec state, and text length. |
+| `src/elevenx/static/index.html` | Browser-based Voice Studio served by FastAPI. |
 | `tests/test_emotions.py` | Model-free tests for preset values and validation boundaries. |
+| `tests/test_api.py` | API smoke tests and mocked synthesis regression tests. |
+| `.github/workflows/tests.yml` | Python 3.10/3.11 CI for model-free tests. |
 
 ## Requirements
 
