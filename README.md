@@ -14,6 +14,9 @@ The slogan is branding, not a measured performance claim. This repository is a s
 - ECAPA-TDNN embeddings as a separate analysis feature.
 - Configurable presets named neutral, confident, empathetic, authoritative, and aggressive.
 - Local WAV output and an optional HTTP endpoint.
+- Synthesis requests are serialized: concurrent requests receive HTTP 503 with a `Retry-After` hint instead of piling up in an unbounded model-call queue.
+- Blocking model inference runs in a worker thread so health checks and other API requests do not stall the event loop during synthesis.
+- Output sample rate is taken from the loaded model when the model exposes it, rather than blindly assuming the configured rate.
 - Product poster artwork included at [docs/elevenx-poster.svg](docs/elevenx-poster.svg).
 - HarmoniaCodec is deliberately not in the active synthesis path. Its README states that no trained model ships and round-trip quality is poor on random initialization. Integrate it only after trained weights and quality gates exist.
 
@@ -35,7 +38,8 @@ ElevenX/
 │       ├── speakers.py
 │       └── api.py
 └── tests/
-    └── test_emotions.py
+    ├── test_emotions.py
+    └── test_api.py
 ```
 
 ## Install
@@ -78,7 +82,11 @@ uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
 
 POST multipart form data to `/v1/synthesize` with `text`, `language`, `emotion`, and `reference_audio`. GET `/health` is a process check, not a model-readiness check.
 
-The API binds to loopback by default and has no authentication or rate limiting. Do not expose it publicly without adding authentication, TLS, concurrency limits, request quotas, and consent controls.
+The API binds to loopback by default and has no authentication or rate limiting. Do not expose it publicly without adding authentication, TLS, request quotas, and consent controls. One synthesis request is accepted at a time; if one is running, a second request receives HTTP 503 and `Retry-After: 3`. The client should wait and retry rather than opening repeated concurrent requests.
+
+### If playback reports that the audio queue has too few elements
+
+This release reduces one possible cause: concurrent requests competing for the same XTTS model/GPU and blocking the API event loop. It also uses the model's declared output sample rate where available. The app still synthesizes a complete WAV; it does **not** implement a real-time streaming playback queue. If the error continues while playing a downloaded WAV, test the WAV in another player and share the complete error text plus whether it appears during synthesis or playback. That distinction is needed to identify a browser/audio-driver issue versus a synthesis-side issue.
 
 ## Limitations and roadmap
 
@@ -89,6 +97,6 @@ The API binds to loopback by default and has no authentication or rate limiting.
 - No 99.97% similarity or sub-10-ms latency has been demonstrated.
 - HarmoniaCodec integration, spatial HRTF processing, and streaming are later milestones. The codec must not be used until trained weights and quality tests are available.
 
-## Test scope
+## Tests and verification
 
-The current tests cover preset validation only. They do not verify TTS quality, speaker similarity, GPU performance, or real-time latency. Tests have not been represented as passing unless they are actually run in a suitable environment.
+Run `python -m pip install -e ".[test]"` then `python -m pytest`. The API tests cover health, contention rejection, and invalid file extensions; the preset tests cover emotion configuration. They do not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Do not treat model-free tests as proof that the model runs on a particular machine.
