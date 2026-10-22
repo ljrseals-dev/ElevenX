@@ -11,7 +11,7 @@ The slogan is branding, not a measured performance claim. This repository is a s
 ## Current milestone
 
 - Lazy-loaded XTTS-v2 synthesis using a reference recording.
-- ECAPA-TDNN embeddings as a separate analysis feature.
+- Optional ECAPA-TDNN embeddings as a separate analysis feature; SpeechBrain is not required for normal XTTS synthesis.
 - Configurable presets named neutral, confident, empathetic, authoritative, and aggressive.
 - Local WAV output and an optional HTTP endpoint.
 - Synthesis requests are serialized: concurrent requests receive HTTP 503 with a `Retry-After` hint instead of piling up in an unbounded model-call queue.
@@ -30,6 +30,8 @@ ElevenX/
 ├── README.md
 ├── docs/
 │   └── elevenx-poster.svg
+├── scripts/
+│   └── smoke_xtts.py
 ├── src/
 │   └── elevenx/
 │       ├── __init__.py
@@ -58,6 +60,12 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[test]"
 ```
 
+For optional ECAPA speaker embeddings, install the extra:
+
+```bash
+python -m pip install -e ".[speaker]"
+```
+
 Model weights may download on first use. After models are cached, synthesis runs locally. For offline deployment, pre-cache weights and audit model-loading paths before disconnecting the machine.
 
 ## Python usage
@@ -84,13 +92,23 @@ Use only voices you own or have permission to synthesize. The reference should b
 uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
 ```
 
-POST multipart form data to `/v1/synthesize` with `text`, `language`, `emotion`, and `reference_audio`. GET `/health` is a process check, not a model-readiness check.
+POST multipart form data to `/v1/synthesize` with `text`, `language`, `emotion`, `consent`, and `reference_audio`. GET `/health` is a process check, not a model-readiness check.
 
 The API binds to loopback by default and has no authentication or rate limiting. Do not expose it publicly without adding authentication, TLS, request quotas, and consent controls. One synthesis request is accepted at a time; if one is running, a second request receives HTTP 503 and `Retry-After: 3`. The client should wait and retry rather than opening repeated concurrent requests.
 
+## Model-backed smoke test
+
+The normal CI suite intentionally does not download large model weights or require a GPU. To test actual inference manually, use a reference recording you have permission to use and run this from the repository root after installing the project:
+
+```bash
+python scripts/smoke_xtts.py --reference /path/to/consented-reference.wav --output elevenx-smoke.wav
+```
+
+The reference must be 3–30 seconds. The script loads XTTS-v2, synthesizes a short phrase, saves a WAV, and validates that the decoded file is non-empty, finite, mono, has a positive duration, and matches the model's declared sample rate. Model weights may be downloaded on first run. After it passes, play the resulting WAV in a separate audio player; the script cannot certify your browser, audio driver, or playback device.
+
 ### If playback reports that the audio queue has too few elements
 
-This release reduces one possible cause: concurrent requests competing for the same XTTS model/GPU and blocking the API event loop. It also uses the model's declared output sample rate where available. The app still synthesizes a complete WAV; it does **not** implement a real-time streaming playback queue. If the error continues while playing a downloaded WAV, test the WAV in another player and share the complete error text plus whether it appears during synthesis or playback. That distinction is needed to identify a browser/audio-driver issue versus a synthesis-side issue.
+This release reduces one possible cause: concurrent requests competing for the same XTTS model/GPU and blocking the API event loop. It also uses the model's declared output sample rate where available. The app still synthesizes a complete WAV; it does **not** implement a real-time streaming playback queue. If the error continues while playing a downloaded WAV, test the WAV in another player and capture the complete error text plus whether it appears during synthesis or playback. That distinction is needed to identify a browser/audio-driver issue versus a synthesis-side issue.
 
 ## Limitations and roadmap
 
@@ -103,4 +121,4 @@ This release reduces one possible cause: concurrent requests competing for the s
 
 ## Tests and verification
 
-Run `python -m pip install -e ".[test]"` then `python -m pytest`. The model-free suite covers health responses, overlapping-request rejection, unsupported and empty reference files, upload-size enforcement, successful WAV responses, temporary-file cleanup, synthesis-failure cleanup, emotion preset validation, configured sample-rate validation, and preference for the loaded model's declared output sample rate. They do not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Do not treat model-free tests as proof that the model runs on a particular machine.
+Run `python -m pip install -e ".[test]"` then `python -m pytest`. The model-free suite covers health responses, overlapping-request rejection, unsupported and empty reference files, upload-size enforcement, successful WAV responses, temporary-file cleanup, synthesis-failure cleanup, emotion preset validation, configured sample-rate validation, and preference for the loaded model's declared output sample rate. It does not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Use the opt-in smoke test above for model-backed validation; do not treat model-free tests as proof that the model runs on a particular machine.

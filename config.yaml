@@ -1,6 +1,6 @@
 app:
   name: ElevenX
-  version: 0.1.0
+  version: 0.1.2
   host: 127.0.0.1
   port: 8000
 audio:
@@ -12,7 +12,8 @@ models:
   xtts_model: tts_models/multilingual/multi-dataset/xtts_v2
   language: en
   device: auto
-  load_speaker_encoder: true
+  # Optional ECAPA embeddings are opt-in; XTTS synthesis does not require SpeechBrain.
+  load_speaker_encoder: false
   speaker_encoder_source: speechbrain/spkrec-ecapa-voxceleb
   cache_dir: ./.models
 synthesis:
