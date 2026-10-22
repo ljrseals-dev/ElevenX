@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "elevenx"
+version = "0.1.0"
+description = "Local-first voice synthesis using XTTS-v2"
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+dependencies = [
+  "numpy>=1.26,<3",
+  "PyYAML>=6.0",
+  "soundfile>=0.12",
+  "scipy>=1.11",
+  "torch>=2.2",
+  "torchaudio>=2.2",
+  "TTS>=0.22.0",
+  "speechbrain>=1.0.0",
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+  "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
