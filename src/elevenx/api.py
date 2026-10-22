@@ -52,9 +52,13 @@ async def synthesize(
     text: str = Form(..., max_length=5000),
     language: str = Form("en", min_length=2, max_length=12),
     emotion: str = Form("neutral"),
+    consent: bool = Form(...),
     reference_audio: UploadFile = File(...),
 ) -> FileResponse:
     """Generate a WAV from multipart form fields and clean temporary files."""
+    if not consent:
+        await reference_audio.close()
+        raise HTTPException(status_code=403, detail="Confirm permission to use the reference voice")
     suffix = Path(reference_audio.filename or "reference.wav").suffix.lower()
     if suffix not in _ALLOWED_SUFFIXES:
         await reference_audio.close()
