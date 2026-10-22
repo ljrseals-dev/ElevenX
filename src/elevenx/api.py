@@ -7,7 +7,7 @@ import threading
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.background import BackgroundTask
+from starlette.background import BackgroundTask
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 
