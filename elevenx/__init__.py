@@ -1,0 +1,1 @@
+"""ElevenX voice synthesis service."""
