@@ -31,8 +31,16 @@ Before importing archive source into runtime paths:
 5. Keep experimental subsystems disabled by default and document their prerequisites.
 6. Run the Python test suite and any optional C++/TypeScript/Rust checks that the available environment supports. Record unavailable checks honestly.
 
-## Status
+## Work completed on the staging branch
 
-This file is a staging checkpoint, not a claim that archive integration is complete. The repository connector can read text files but does not provide the ZIP bytes as an extractable local file in this workflow, so the archive source itself has not yet been audited or merged into runtime code. No build or test result is claimed here.
+- Added `SECURITY.md` describing the current loopback-only deployment boundary, consent limitations, sensitive audio handling, and prerequisites for any remote deployment.
+- Added `DEPENDENCIES.md` documenting the declared Python runtime dependencies and the audit gates for optional archive subsystems.
+- Added model-free engine tests covering invalid configured sample rates and preference for the loaded model's declared output sample rate.
 
-Next implementation step: make the archive bytes available to the build environment, audit the source, then commit small, test-backed integration changes to this branch.
+These changes document and test existing behavior; they do not activate new inference subsystems.
+
+## Remaining archive integration blocker
+
+The repository connector can read text files but does not provide the ZIP bytes as an extractable local file in this workflow. The archive source itself has therefore not been audited or merged into runtime code. No test-suite or build result is claimed here.
+
+Next implementation step: make `Source/ElevenX.zip` available as a chat attachment or in an extractable build environment, audit the source and licenses, then commit small, test-backed integration changes to this branch.
