@@ -178,7 +178,7 @@ This endpoint reports that the API process responds. It **does not** prove that 
 
 ### Generate a WAV
 
-The endpoint expects multipart form data. Example:
+The endpoint expects multipart form data, including an explicit `consent=true` confirmation. Example:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/v1/synthesize \
