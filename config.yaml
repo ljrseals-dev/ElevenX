@@ -23,7 +23,7 @@ synthesis:
     confident: {temperature: 0.65, top_k: 40, top_p: 0.80, speed: 0.98}
     empathetic: {temperature: 0.80, top_k: 60, top_p: 0.90, speed: 0.94}
     authoritative: {temperature: 0.60, top_k: 40, top_p: 0.80, speed: 0.96}
-    intense: {temperature: 0.90, top_k: 60, top_p: 0.92, speed: 1.02}
+    aggressive: {temperature: 0.90, top_k: 60, top_p: 0.92, speed: 1.02}
 codec:
   enabled: false
   require_validated_weights: true
