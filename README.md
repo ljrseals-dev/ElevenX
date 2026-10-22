@@ -8,7 +8,7 @@
 
 That line is branding, not a measured performance claim. ElevenX is an early implementation milestone—not a validated production voice platform.
 
-[Repository](https://github.com/ljrseals-dev/ElevenX) · [Feature branch](https://github.com/ljrseals-dev/ElevenX/tree/feat/elevenx-core-tts) · [Current implementation PR](https://github.com/ljrseals-dev/ElevenX/pull/2)
+[Repository](https://github.com/ljrseals-dev/ElevenX) · [Feature branch](https://github.com/ljrseals-dev/ElevenX/tree/feat/elevenx-core-tts) · [Voice Studio implementation PR](https://github.com/ljrseals-dev/ElevenX/pull/3)
 
 ## Contents
 
@@ -219,7 +219,7 @@ Run the model-free tests:
 python -m pytest
 ```
 
-The current test suite focuses on emotion enum values and sampling-parameter validation. It does not require generating speech, but the full environment still needs the declared Python dependencies installed.
+The model-free suite covers emotion preset validation, the homepage and health endpoint, API request validation, upload limits, and a mocked synthesis response. It does not download model weights or validate real speech quality. GitHub Actions runs it on Python 3.10 and 3.11.
 
 **Validation status:** these tests and real XTTS inference must be run in a compatible environment before calling this milestone verified. No passing test run, GPU benchmark, speaker-similarity score, or real-time latency result is claimed by this README.
 
