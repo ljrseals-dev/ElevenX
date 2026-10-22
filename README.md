@@ -12,8 +12,8 @@ implementation, not a validated production voice platform.
 
 - Lazy-loaded XTTS-v2 synthesis using a reference recording.
 - ECAPA-TDNN embeddings as a separate analysis feature.
-- Configurable synthesis presets named neutral, confident, empathetic,
-  authoritative, and intense.
+- Configurable presets named neutral, confident, empathetic, authoritative,
+  and aggressive.
 - Local WAV output and an optional HTTP endpoint.
 - HarmoniaCodec is deliberately not in the active synthesis path. Its README
   states that no trained model ships and round-trip quality is poor on random
@@ -25,6 +25,7 @@ implementation, not a validated production voice platform.
 ElevenX/
 ├── config.yaml
 ├── requirements.txt
+├── pyproject.toml
 ├── README.md
 ├── src/elevenx/
 │   ├── __init__.py
@@ -45,18 +46,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-~~~
-
-Run commands from the repository root with the source directory on PYTHONPATH:
-
-~~~bash
-# macOS/Linux
-PYTHONPATH=src pytest -q
-PYTHONPATH=src uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
-# PowerShell
-$env:PYTHONPATH="src"
-uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
+python -m pip install -e ".[test]"
 ~~~
 
 Model weights may download on first use. After models are cached, synthesis
@@ -83,6 +73,10 @@ Use only voices you own or have permission to synthesize. The reference should
 be clean speech; duration is validated from 3 to 30 seconds.
 
 ## Local API
+
+~~~bash
+uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
+~~~
 
 POST multipart form data to /v1/synthesize with text, language, emotion, and
 reference_audio. GET /health is a process check, not a model-readiness check.
