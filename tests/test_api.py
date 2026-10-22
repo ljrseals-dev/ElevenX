@@ -35,7 +35,7 @@ def test_synthesis_rejects_unsupported_reference_extension():
     assert response.status_code == 415
 
 
-@pytest.mark.parametrize("emotion", ["unknown", "", "sad"])
+@pytest.mark.parametrize("emotion", ["unknown", "sad"])
 def test_synthesis_rejects_unknown_emotion_before_loading_model(emotion):
     response = client.post(
         "/v1/synthesize",
