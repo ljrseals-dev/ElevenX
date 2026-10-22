@@ -4,11 +4,13 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
+from typing import Final
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.background import BackgroundTask
 from fastapi.responses import FileResponse
 
+from .emotions import Emotion
 from .engine import ElevenXEngine
 
 app = FastAPI(
@@ -18,6 +20,9 @@ app = FastAPI(
 )
 _engine: ElevenXEngine | None = None
 _WEB_APP = Path(__file__).resolve().parent / "static" / "index.html"
+_MAX_UPLOAD_BYTES: Final = 25 * 1024 * 1024
+_UPLOAD_CHUNK_BYTES: Final = 1024 * 1024
+_ALLOWED_SUFFIXES: Final = {".wav", ".flac", ".ogg", ".aiff", ".aif"}
 
 
 def get_engine() -> ElevenXEngine:
@@ -38,40 +43,60 @@ def web_app() -> FileResponse:
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    """Liveness only; this endpoint deliberately does not load model weights."""
     return {"status": "ok", "service": "ElevenX", "interface": "web"}
 
 
 @app.post("/v1/synthesize")
 async def synthesize(
     text: str = Form(..., max_length=5000),
-    language: str = Form("en"),
+    language: str = Form("en", min_length=2, max_length=12),
     emotion: str = Form("neutral"),
     reference_audio: UploadFile = File(...),
 ) -> FileResponse:
     """Generate a WAV from multipart form fields and clean temporary files."""
     suffix = Path(reference_audio.filename or "reference.wav").suffix.lower()
-    if suffix not in {".wav", ".flac", ".ogg", ".aiff", ".aif"}:
+    if suffix not in _ALLOWED_SUFFIXES:
         await reference_audio.close()
         raise HTTPException(status_code=415, detail="Unsupported reference audio format")
+    if not text.strip():
+        await reference_audio.close()
+        raise HTTPException(status_code=422, detail="Text must not be empty")
+    try:
+        selected_emotion = Emotion(emotion)
+    except ValueError as exc:
+        await reference_audio.close()
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unsupported emotion. Choose one of: {', '.join(item.value for item in Emotion)}",
+        ) from exc
 
     reference_path: Path | None = None
     output_path: Path | None = None
     try:
-        content = await reference_audio.read()
-        if not content:
-            raise HTTPException(status_code=400, detail="Reference audio is empty")
-        if len(content) > 25 * 1024 * 1024:
-            raise HTTPException(status_code=413, detail="Reference file exceeds 25 MB")
-
+        # Enforce the cap while reading, not after allocating an unbounded upload.
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as handle:
             reference_path = Path(handle.name)
-            handle.write(content)
+            total = 0
+            while True:
+                chunk = await reference_audio.read(_UPLOAD_CHUNK_BYTES)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > _MAX_UPLOAD_BYTES:
+                    raise HTTPException(status_code=413, detail="Reference file exceeds 25 MiB")
+                handle.write(chunk)
+        if total == 0:
+            raise HTTPException(status_code=400, detail="Reference audio is empty")
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as handle:
             output_path = Path(handle.name)
 
-        result = get_engine().synthesize(text, reference_path, language, emotion)
-        get_engine().save_wav(result, output_path)
+        engine = get_engine()
+        result = engine.synthesize(text, reference_path, language, selected_emotion.value)
+        engine.save_wav(result, output_path)
 
+        # FileResponse reads the file before running its background cleanup.
         def cleanup() -> None:
             if reference_path is not None:
                 reference_path.unlink(missing_ok=True)
