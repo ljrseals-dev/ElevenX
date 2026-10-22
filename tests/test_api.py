@@ -29,7 +29,7 @@ def test_homepage_serves_voice_studio():
 def test_synthesis_rejects_unsupported_reference_extension():
     response = client.post(
         "/v1/synthesize",
-        data={"text": "Hello world", "language": "en", "emotion": "neutral"},
+        data={"text": "Hello world", "language": "en", "emotion": "neutral", "consent": "true"},
         files={"reference_audio": ("reference.exe", b"not audio", "application/octet-stream")},
     )
     assert response.status_code == 415
@@ -39,7 +39,7 @@ def test_synthesis_rejects_unsupported_reference_extension():
 def test_synthesis_rejects_unknown_emotion_before_loading_model(emotion):
     response = client.post(
         "/v1/synthesize",
-        data={"text": "Hello world", "language": "en", "emotion": emotion},
+        data={"text": "Hello world", "language": "en", "emotion": emotion, "consent": "true"},
         files={"reference_audio": ("reference.wav", b"reference", "audio/wav")},
     )
     assert response.status_code == 422
@@ -48,7 +48,7 @@ def test_synthesis_rejects_unknown_emotion_before_loading_model(emotion):
 def test_synthesis_rejects_blank_text_before_loading_model():
     response = client.post(
         "/v1/synthesize",
-        data={"text": "   ", "language": "en", "emotion": "neutral"},
+        data={"text": "   ", "language": "en", "emotion": "neutral", "consent": "true"},
         files={"reference_audio": ("reference.wav", b"reference", "audio/wav")},
     )
     assert response.status_code == 422
@@ -73,7 +73,7 @@ def test_synthesis_uses_engine_and_returns_wav(monkeypatch, tmp_path):
     monkeypatch.setattr("elevenx.api.get_engine", lambda: FakeEngine())
     response = client.post(
         "/v1/synthesize",
-        data={"text": "Hello from tests", "language": "en", "emotion": "neutral"},
+        data={"text": "Hello from tests", "language": "en", "emotion": "neutral", "consent": "true"},
         files={"reference_audio": ("reference.wav", b"valid-for-fake", "audio/wav")},
     )
     assert response.status_code == 200
@@ -85,7 +85,7 @@ def test_synthesis_upload_limit_is_enforced():
     payload = b"x" * (25 * 1024 * 1024 + 1)
     response = client.post(
         "/v1/synthesize",
-        data={"text": "Hello world", "language": "en", "emotion": "neutral"},
+        data={"text": "Hello world", "language": "en", "emotion": "neutral", "consent": "true"},
         files={"reference_audio": ("reference.wav", payload, "audio/wav")},
     )
     assert response.status_code == 413
