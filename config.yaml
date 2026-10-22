@@ -1,0 +1,32 @@
+app:
+  name: ElevenX
+  version: 0.1.0
+  host: 127.0.0.1
+  port: 8000
+audio:
+  sample_rate: 24000
+  output_channels: 1
+  reference_min_seconds: 3.0
+  reference_max_seconds: 30.0
+models:
+  xtts_model: tts_models/multilingual/multi-dataset/xtts_v2
+  language: en
+  device: auto
+  load_speaker_encoder: true
+  speaker_encoder_source: speechbrain/spkrec-ecapa-voxceleb
+  cache_dir: ./.models
+synthesis:
+  split_sentences: true
+  default_emotion: neutral
+  emotion_presets:
+    neutral: {temperature: 0.75, top_k: 50, top_p: 0.85, speed: 1.0}
+    confident: {temperature: 0.65, top_k: 40, top_p: 0.80, speed: 0.98}
+    empathetic: {temperature: 0.80, top_k: 60, top_p: 0.90, speed: 0.94}
+    authoritative: {temperature: 0.60, top_k: 40, top_p: 0.80, speed: 0.96}
+    intense: {temperature: 0.90, top_k: 60, top_p: 0.92, speed: 1.02}
+codec:
+  enabled: false
+  require_validated_weights: true
+security:
+  allow_remote_api: false
+  max_text_characters: 5000
