@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from elevenx import api
@@ -34,3 +36,80 @@ def test_unsupported_reference_format_is_rejected():
         files={"reference_audio": ("reference.exe", b"not audio", "application/octet-stream")},
     )
     assert response.status_code == 415
+
+
+def test_empty_reference_is_rejected_without_loading_engine(monkeypatch):
+    def unexpected_engine_load():
+        raise AssertionError("engine must not load for an empty reference")
+
+    monkeypatch.setattr(api, "get_engine", unexpected_engine_load)
+    response = client.post(
+        "/v1/synthesize",
+        data={"text": "hello"},
+        files={"reference_audio": ("reference.wav", b"", "audio/wav")},
+    )
+    assert response.status_code == 400
+    assert "empty" in response.json()["detail"].lower()
+
+
+def test_reference_upload_limit_is_enforced(monkeypatch):
+    def unexpected_engine_load():
+        raise AssertionError("engine must not load for an oversized reference")
+
+    monkeypatch.setattr(api, "get_engine", unexpected_engine_load)
+    oversized = b"x" * (25 * 1024 * 1024 + 1)
+    response = client.post(
+        "/v1/synthesize",
+        data={"text": "hello"},
+        files={"reference_audio": ("reference.wav", oversized, "audio/wav")},
+    )
+    assert response.status_code == 413
+
+
+def test_synthesis_returns_wav_and_cleans_temporary_files(monkeypatch):
+    captured = {}
+
+    class FakeEngine:
+        def synthesize(self, text, reference_audio, language, emotion):
+            assert text == "Hello from tests"
+            assert language == "en"
+            assert emotion == "neutral"
+            captured["reference_path"] = Path(reference_audio)
+            assert captured["reference_path"].read_bytes() == b"fake reference"
+            return object()
+
+        def save_wav(self, result, output_path):
+            captured["output_path"] = Path(output_path)
+            captured["output_path"].write_bytes(b"RIFF-test-wav")
+            return captured["output_path"]
+
+    monkeypatch.setattr(api, "get_engine", lambda: FakeEngine())
+    response = client.post(
+        "/v1/synthesize",
+        data={"text": "Hello from tests", "language": "en", "emotion": "neutral"},
+        files={"reference_audio": ("reference.wav", b"fake reference", "audio/wav")},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("audio/wav")
+    assert response.content == b"RIFF-test-wav"
+    assert not captured["reference_path"].exists()
+    assert not captured["output_path"].exists()
+    assert not api._synthesis_slot.locked()
+
+
+def test_synthesis_releases_slot_when_engine_raises(monkeypatch):
+    class FailingEngine:
+        def synthesize(self, *args, **kwargs):
+            raise RuntimeError("synthetic model failure")
+
+    monkeypatch.setattr(api, "get_engine", lambda: FailingEngine())
+    response = client.post(
+        "/v1/synthesize",
+        data={"text": "Hello from tests", "language": "en", "emotion": "neutral"},
+        files={"reference_audio": ("reference.wav", b"fake reference", "audio/wav")},
+    )
+
+    assert response.status_code == 400
+    assert "synthetic model failure" in response.json()["detail"]
+    assert not api._synthesis_slot.locked()
