@@ -163,6 +163,8 @@ Start the development server from the repository root:
 uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
 ```
 
+Open **http://127.0.0.1:8000/** in your browser to use the ElevenX Voice Studio interface. Enter a script, choose a delivery preset and language, upload a permitted voice reference, accept the usage confirmation, then generate, preview, and download the WAV. The web interface is served by the same local FastAPI process; it does not require a separate frontend build step.
+
 ### Health check
 
 ```bash
