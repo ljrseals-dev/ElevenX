@@ -54,7 +54,18 @@ def test_synthesis_rejects_blank_text_before_loading_model():
     assert response.status_code == 422
 
 
-def test_synthesis_uses_engine_and_returns_wav(monkeypatch, tmp_path):
+
+def test_synthesis_requires_voice_use_consent():
+    response = client.post(
+        "/v1/synthesize",
+        data={"text": "Hello world", "language": "en", "emotion": "neutral", "consent": "false"},
+        files={"reference_audio": ("reference.wav", b"reference", "audio/wav")},
+    )
+    assert response.status_code == 403
+    assert "permission" in response.json()["detail"].lower()
+
+
+def test_synthesis_uses_engine_and_returns_wav(monkeypatch):
     class FakeResult:
         pass
 
