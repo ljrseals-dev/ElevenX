@@ -1,0 +1,22 @@
+system:
+  sample_rate: 24000
+  device: auto
+  use_codec: false
+  streaming_chunk_size: 20
+tts:
+  model_name: tts_models/multilingual/multi-dataset/xtts_v2
+  language: en
+  emotion_prompts:
+    neutral: ""
+    confidence: ""
+    empathy: ""
+    authority: ""
+    aggression: ""
+spatial:
+  enabled: false
+  room_dim: [5.0, 3.0, 3.0]
+  source_position: [3.0, 1.5, 1.5]
+  mic_position: [1.0, 1.5, 1.5]
+server:
+  reference_root: ./references
+  max_text_characters: 4000
