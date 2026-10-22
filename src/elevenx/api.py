@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Final
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.background import BackgroundTask
+from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 
 from .emotions import Emotion
