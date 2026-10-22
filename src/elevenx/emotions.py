@@ -8,7 +8,7 @@ class Emotion(str, Enum):
     CONFIDENT = "confident"
     EMPATHETIC = "empathetic"
     AUTHORITATIVE = "authoritative"
-    INTENSE = "intense"
+    AGGRESSIVE = "aggressive"
 
 @dataclass(frozen=True)
 class EmotionPreset:
