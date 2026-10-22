@@ -3,20 +3,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from elevenx.studio import (
-    VocalArrangement,
-    VocalPart,
-    build_harmony_arrangement,
-    render_arrangement,
-)
+from elevenx.studio import VocalPart, build_harmony_arrangement, render_arrangement
 
 
 def test_builds_editable_four_part_arrangement_with_adlibs():
     arrangement = build_harmony_arrangement("Demo", "Hello world", part_count=4)
     assert [part.name for part in arrangement.parts] == [
         "Lead", "Harmony High L", "Harmony Low R", "Double L", "Ad-libs"
-    ] if False else arrangement.parts[0].name == "Lead"
-    assert len(arrangement.parts) == 5
+    ]
     assert len({part.name for part in arrangement.parts}) == len(arrangement.parts)
 
 
