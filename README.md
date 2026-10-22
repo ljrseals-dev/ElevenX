@@ -99,4 +99,4 @@ This release reduces one possible cause: concurrent requests competing for the s
 
 ## Tests and verification
 
-Run `python -m pip install -e ".[test]"` then `python -m pytest`. The API tests cover health, contention rejection, and invalid file extensions; the preset tests cover emotion configuration. They do not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Do not treat model-free tests as proof that the model runs on a particular machine.
+Run `python -m pip install -e ".[test]"` then `python -m pytest`. The model-free suite covers health responses, overlapping-request rejection, unsupported and empty reference files, upload-size enforcement, successful WAV responses, temporary-file cleanup, synthesis-failure cleanup, emotion preset validation, configured sample-rate validation, and preference for the loaded model's declared output sample rate. They do not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Do not treat model-free tests as proof that the model runs on a particular machine.
