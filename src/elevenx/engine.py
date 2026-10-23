@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import yaml
@@ -23,12 +23,12 @@ class SynthesisResult:
 class ElevenXEngine:
     """Synthesize speech from text using a reference voice the caller may use."""
 
-    def __init__(self, config_path: str | Path = "config.yaml") -> None:
+    def __init__(self, config_path: Union[str, Path] = "config.yaml") -> None:
         path = Path(config_path)
         if not path.is_file():
             raise FileNotFoundError(f"ElevenX config not found: {path}")
         with path.open("r", encoding="utf-8") as handle:
-            self.config: dict[str, Any] = yaml.safe_load(handle) or {}
+            self.config: Dict[str, Any] = yaml.safe_load(handle) or {}
         self.sample_rate = int(self.config.get("audio", {}).get("sample_rate", 24000))
         if self.sample_rate <= 0:
             raise ValueError("audio.sample_rate must be a positive integer")
@@ -38,8 +38,8 @@ class ElevenXEngine:
             import torch
             requested = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = requested
-        self._tts: Any | None = None
-        self._speaker_encoder: SpeakerEncoder | None = None
+        self._tts: Optional[Any] = None
+        self._speaker_encoder: Optional[SpeakerEncoder] = None
 
     def _load_tts(self) -> Any:
         if self._tts is None:
@@ -80,7 +80,7 @@ class ElevenXEngine:
             )
         return self._speaker_encoder
 
-    def speaker_embedding(self, reference_audio: str | Path) -> np.ndarray:
+    def speaker_embedding(self, reference_audio: Union[str, Path]) -> np.ndarray:
         """Return an ECAPA embedding for analysis or comparison."""
         if not self.config.get("models", {}).get("load_speaker_encoder", True):
             raise RuntimeError("Speaker encoder is disabled in config.yaml")
@@ -90,8 +90,8 @@ class ElevenXEngine:
         self,
         text: str,
         reference_audio: str | Path,
-        language: str | None = None,
-        emotion: Emotion | str | None = None,
+        language: Optional[str] = None,
+        emotion: Optional[Union[Emotion, str]] = None,
     ) -> SynthesisResult:
         """Generate a mono waveform; style presets are hints, not emotion guarantees."""
         text = text.strip()
@@ -133,7 +133,7 @@ class ElevenXEngine:
             audio = audio / peak
         return SynthesisResult(audio, self.sample_rate, chosen.value, len(audio) / self.sample_rate)
 
-    def save_wav(self, result: SynthesisResult, output_path: str | Path) -> Path:
+    def save_wav(self, result: SynthesisResult, output_path: Union[str, Path]) -> Path:
         """Write output to a caller-selected local WAV path."""
         import soundfile as sf
         target = Path(output_path)

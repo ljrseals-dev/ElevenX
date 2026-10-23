@@ -50,7 +50,7 @@ Run the local API, then open `http://127.0.0.1:8000/` to use the bundled browser
 
 ## Install
 
-Use Python 3.10 or 3.11 in a clean virtual environment. Deep-learning package compatibility varies by OS/GPU; install a matching PyTorch build first if needed.
+Use Python 3.9–3.12 in a clean virtual environment. Deep-learning package compatibility varies by OS/GPU; install a matching PyTorch build first if needed.
 
 ```bash
 python -m venv .venv
@@ -59,6 +59,8 @@ python -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -e ".[test]"
 ```
+
+**XTTS installation is intentionally unresolved in this branch.** The project metadata does not install or pin `TTS`; install the exact XTTS-compatible distribution used by your working environment separately. Do not assume `TTS==0.14.3` provides XTTS-v2. Record the package version or Git commit before making it a project extra.
 
 For optional ECAPA speaker embeddings, install the extra:
 
@@ -94,7 +96,7 @@ uvicorn elevenx.api:app --host 127.0.0.1 --port 8000
 
 POST multipart form data to `/v1/synthesize` with `text`, `language`, `emotion`, `consent`, and `reference_audio`. GET `/health` is a process check, not a model-readiness check.
 
-The API binds to loopback by default and has no authentication or rate limiting. Do not expose it publicly without adding authentication, TLS, request quotas, and consent controls. One synthesis request is accepted at a time; if one is running, a second request receives HTTP 503 and `Retry-After: 3`. The client should wait and retry rather than opening repeated concurrent requests.
+The API binds to loopback by default and has no authentication or rate limiting. Do not expose it publicly without adding authentication, TLS, request quotas, and consent controls. One synthesis request is accepted at a time; if one is running, a second request receives HTTP 503 and `Retry-After: 1`. The client should wait and retry rather than opening repeated concurrent requests.
 
 ## Model-backed smoke test
 

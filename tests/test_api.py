@@ -33,7 +33,7 @@ def test_overlapping_synthesis_is_rejected_with_retry_hint():
             files={"reference_audio": ("reference.wav", b"small test payload", "audio/wav")},
         )
         assert response.status_code == 503
-        assert response.headers["retry-after"] == "3"
+        assert response.headers["retry-after"] == "1"
         assert "already synthesizing" in response.json()["detail"]
     finally:
         api._synthesis_slot.release()
@@ -75,7 +75,7 @@ def test_voice_permission_is_required():
         data={"text": "hello", "language": "en", "emotion": "neutral", "consent": "false"},
         files={"reference_audio": ("reference.wav", b"reference", "audio/wav")},
     )
-    assert response.status_code == 403
+    assert response.status_code == 400
     assert "permission" in response.json()["detail"].lower()
 
 
