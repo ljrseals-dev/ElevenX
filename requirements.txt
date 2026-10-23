@@ -1,11 +1,14 @@
-numpy>=1.26,<3
+# Runtime dependencies. XTTS/Coqui TTS is deliberately not pinned here until
+# the exact working distribution (official package, fork, VCS commit, or wheel)
+# is identified from the user's environment.
+numpy>=1.21,<3
 PyYAML>=6.0
 soundfile>=0.12
-scipy>=1.11
-torch>=2.2
-torchaudio>=2.2
-TTS>=0.22.0
-fastapi>=0.110
-uvicorn[standard]>=0.27
+scipy>=1.8,<1.11; python_version < "3.12"
+scipy>=1.11; python_version >= "3.12"
+torch>=2.0,<2.5
+torchaudio>=2.0,<2.5
+fastapi>=0.100,<1
+uvicorn[standard]>=0.23,<1
 python-multipart>=0.0.9
-pytest>=8.0
+pytest>=7,<9
