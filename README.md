@@ -62,9 +62,6 @@ python -m pip install -e ".[test]"
 
 **XTTS installation is intentionally unresolved in this branch.** The project metadata does not install or pin `TTS`; install the exact XTTS-compatible distribution used by your working environment separately. Do not assume `TTS==0.14.3` provides XTTS-v2. Record the package version or Git commit before making it a project extra.
 
-```bash
-```
-
 For optional ECAPA speaker embeddings, install the extra:
 
 ```bash
