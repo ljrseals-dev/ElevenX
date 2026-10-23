@@ -28,10 +28,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install --ignore-requires-python -e ".[dev]"
       - run: pytest -q
 
-  test-py38-install:
+  test-py38-core-probe:
+    # Probe core dependencies only; XTTS is excluded until its exact distribution is known.
+    # Ignore project metadata's >=3.9 floor for this non-support smoke probe only.
     needs: py38-guard
     runs-on: ubuntu-latest
     continue-on-error: true
