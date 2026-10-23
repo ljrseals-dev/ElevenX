@@ -49,7 +49,7 @@ class SpeakerEncoder:
             audio = audio / peak
         return np.asarray(audio, dtype=np.float32), int(rate)
 
-    def embed(self, path: str | Path) -> np.ndarray:
+    def embed(self, path: Union[str, Path]) -> np.ndarray:
         """Return a normalized ECAPA vector; it is not an XTTS conditioning latent."""
         import torch
         audio, rate = self.read_reference(path)
