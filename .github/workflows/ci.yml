@@ -1,0 +1,44 @@
+name: ci
+on: [push, pull_request]
+
+jobs:
+  py38-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+      - name: Install Python 3.8-compatible lint tools
+        run: python -m pip install "ruff<0.12" "black<25"
+      - name: AST compatibility guard (includes its own source)
+        run: python scripts/check_py38.py src scripts
+      - run: ruff check src scripts tests
+      - run: black --check src scripts tests
+
+  test-matrix:
+    needs: py38-guard
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest -q
+
+  test-py38-install:
+    needs: py38-guard
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+      - run: python -m pip install -e ".[dev]"
+      - run: pytest -q
