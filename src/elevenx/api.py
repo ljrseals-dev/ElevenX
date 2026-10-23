@@ -5,7 +5,7 @@ import os
 import tempfile
 import threading
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from starlette.background import BackgroundTask
@@ -42,7 +42,7 @@ def web_app() -> FileResponse:
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> Dict[str, str]:
     return {"status": "ok", "service": "ElevenX", "interface": "web", "mode": "complete-waveform"}
 
 
