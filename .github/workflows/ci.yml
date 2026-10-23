@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install --ignore-requires-python -e ".[dev]"
+      - run: python -m pip install -e ".[dev]"
       - run: pytest -q
 
   test-py38-core-probe:
@@ -42,5 +42,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.8"
-      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install --ignore-requires-python -e ".[dev]"
       - run: pytest -q
