@@ -99,7 +99,7 @@ Preferred launch command (reads `config.yaml` and forces loopback unless remote 
 python -m elevenx.api
 ```
 
-The default `security.allow_remote_api: false` is enforced at request time. The app rejects requests with a non-loopback client, non-loopback server bind, or non-loopback Host header, even if someone starts Uvicorn with a wildcard bind. Missing or malformed security configuration fails closed. Set `security.allow_remote_api: true` only as a deliberate deployment decision; this switch is **not** a substitute for authentication, TLS, quotas, and consent controls. The API has no authentication or rate limiting, so keep remote access disabled for normal local use.
+The default `security.allow_remote_api: false` is enforced at request time. The app rejects requests with a non-loopback client, non-loopback server bind, or non-loopback Host header, even if someone starts Uvicorn with a wildcard bind. Missing or malformed security configuration fails closed. Set `security.allow_remote_api: true` only as a deliberate deployment decision; this switch is **not** a substitute for authentication, TLS, quotas, and consent controls. The API has no authentication or rate limiting; do not expose it publicly without adding authentication, TLS, request quotas, and consent controls. Keep remote access disabled for normal local use.
 
 POST multipart form data to `/v1/synthesize` with `text`, `language`, `emotion`, `consent`, and `reference_audio`. GET `/health` is a process check, not a model-readiness check. One synthesis request is accepted at a time; if one is running, a second request receives HTTP 503 and `Retry-After: 3`. The client should wait and retry rather than opening repeated concurrent requests.
 
