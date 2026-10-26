@@ -1,9 +1,12 @@
-# Add / extend under config.yaml (codec section already present):
+# Optional offline drop-in TTS configuration. Defaults keep the path off.
 codec:
-  enabled: false                    # keep false until readiness guard passes
+  enabled: false
   require_validated_weights: true
-  # Optional: prefer drop-in path for local smoke / offline use
   dropin:
-    enabled: true
-    default_codec: baseline         # or "harmonia" (falls back until installed)
+    enabled: false
+    default_codec: baseline # baseline | harmonia (reserved; readiness-gated)
     sample_rate: 22050
+
+# Existing synthesis settings remain unchanged. XTTS-v2 stays the default.
+synthesis:
+  backend: xtts
