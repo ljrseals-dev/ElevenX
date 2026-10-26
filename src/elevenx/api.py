@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from starlette.background import BackgroundTask
 from starlette.responses import FileResponse, JSONResponse, Response
@@ -89,7 +89,7 @@ class LocalOnlyMiddleware:
         server = scope.get("server")
         server_host = server[0] if server else None
         headers = {key.lower(): value.decode("latin-1") for key, value in scope.get("headers", [])}
-        host_header = headers.get(b"host") if False else headers.get("host", "")
+        host_header = headers.get("host", "")
         # TestClient uses synthetic hostnames; production requests must use loopback.
         test_request = client_host in _TEST_HOSTS or server_host in _TEST_HOSTS
         host_name = host_header.rsplit(":", 1)[0] if host_header.count(":") == 1 else host_header
