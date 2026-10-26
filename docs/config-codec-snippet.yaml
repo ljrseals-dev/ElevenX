@@ -1,0 +1,9 @@
+# Add / extend under config.yaml (codec section already present):
+codec:
+  enabled: false                    # keep false until readiness guard passes
+  require_validated_weights: true
+  # Optional: prefer drop-in path for local smoke / offline use
+  dropin:
+    enabled: true
+    default_codec: baseline         # or "harmonia" (falls back until installed)
+    sample_rate: 22050
