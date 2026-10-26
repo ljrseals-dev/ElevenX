@@ -41,9 +41,13 @@ ElevenX/
 │   └── elevenx/
 │       ├── __init__.py
 │       ├── emotions.py
-│       ├── engine.py
+│       ├── engine.py              # XTTS-v2 remains the default
 │       ├── speakers.py
-│       └── api.py
+│       ├── api.py
+│       ├── tts_bridge.py           # explicit optional drop-in helper
+│       └── tts/
+│           ├── engine.py
+│           └── codec/              # baseline + reserved Harmonia slot
 └── tests/
     ├── test_emotions.py
     └── test_api.py
@@ -127,3 +131,46 @@ This release reduces one possible cause: concurrent requests competing for the s
 ## Tests and verification
 
 Run `python -m pip install -e ".[test]"` then `python -m pytest`. The model-free suite covers health responses, overlapping-request rejection, unsupported and empty reference files, upload-size enforcement, successful WAV responses, temporary-file cleanup, synthesis-failure cleanup, emotion preset validation, configured sample-rate validation, and preference for the loaded model's declared output sample rate. It does not verify real XTTS inference, TTS quality, speaker similarity, GPU performance, or real-time latency. Use the opt-in smoke test above for model-backed validation; do not treat model-free tests as proof that the model runs on a particular machine.
+
+
+## Optional offline drop-in TTS (upgraded-waffle)
+
+The `codec.dropin` configuration defaults to `enabled: false`, `default_codec: baseline`, and `sample_rate: 22050`. This is configuration documentation only; the current XTTS engine and HTTP API do not automatically switch backends. Opt in explicitly by calling `elevenx.tts.TTSEngine` or `elevenx.tts_bridge.synthesize_dropin`. The formant path is not a voice-cloning path.
+
+ElevenX includes an optional NumPy formant-synthesis path adapted from
+[upgraded-waffle](https://github.com/ljrseals-dev/upgraded-waffle). It is
+intended for offline demos, lightweight local synthesis, and model-free CI;
+it does **not** replace XTTS-v2, and its output is not equivalent in quality
+to a neural TTS model.
+
+```python
+from elevenx.tts import TTSEngine, available_codecs
+
+print(available_codecs())
+audio = TTSEngine(codec_name="baseline", sample_rate=22050).synth(
+    "Welcome to ElevenX."
+)
+```
+
+Or write a WAV from the command line:
+
+```bash
+python -m elevenx.tts.cli "hello world" out.wav
+```
+
+The `harmonia` codec is a reserved, fail-safe slot only. It falls back to
+the baseline codec while implementation, trained weights, a verified weights
+hash, and reproducible codec-quality gates are missing. Do not enable it in
+production. The existing `ElevenXEngine` and `POST /v1/synthesize` continue
+to use XTTS-v2 by default. Consent checks, reference-audio validation,
+serialized synthesis, and loopback-only API security remain unchanged.
+
+Run the new model-free tests with:
+
+```bash
+PYTHONPATH=src python -m pytest tests/test_tts_dropin.py -q
+```
+
+See [the drop-in/Harmonia promotion notes](docs/dropin-tts-harmonia-promotion.md),
+[HarmoniaCodec integration boundary](docs/harmoniacodec-integration.md), and
+[upgraded-waffle source](https://github.com/ljrseals-dev/upgraded-waffle).

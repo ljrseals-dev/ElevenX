@@ -28,6 +28,11 @@ synthesis:
 codec:
   enabled: false
   require_validated_weights: true
+  # Optional local formant TTS; never changes the XTTS API default.
+  dropin:
+    enabled: false
+    default_codec: baseline # baseline | harmonia (reserved; readiness-gated)
+    sample_rate: 22050
 security:
   allow_remote_api: false
   max_text_characters: 5000
