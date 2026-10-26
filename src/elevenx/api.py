@@ -14,7 +14,7 @@ from fastapi.responses import FileResponse
 from .emotions import Emotion
 from .engine import ElevenXEngine
 
-app = FastAPI(title="ElevenX", version="0.1.1")
+app = FastAPI(title="ElevenX", version="0.1.2")
 _engine: ElevenXEngine | None = None
 _engine_lock = threading.Lock()
 # XTTS models and GPU contexts are not assumed to be safe for concurrent calls.
