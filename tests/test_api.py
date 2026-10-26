@@ -148,3 +148,12 @@ def test_synthesis_releases_slot_when_engine_raises(monkeypatch):
     assert response.status_code == 400
     assert "synthetic model failure" in response.json()["detail"]
     assert not api._synthesis_slot.locked()
+
+
+def test_openapi_metadata_matches_package_release_version():
+    # Keep generated OpenAPI metadata in sync with pyproject.toml/config.yaml.
+    assert api.app.title == "ElevenX"
+    assert api.app.version == "0.1.2"
+    schema = client.get("/openapi.json")
+    assert schema.status_code == 200
+    assert schema.json()["info"]["version"] == "0.1.2"
