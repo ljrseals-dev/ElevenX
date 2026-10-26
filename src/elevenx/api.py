@@ -88,7 +88,7 @@ class LocalOnlyMiddleware:
         client_host = client[0] if client else None
         server = scope.get("server")
         server_host = server[0] if server else None
-        headers = {key.lower(): value.decode("latin-1") for key, value in scope.get("headers", [])}
+        headers = {key.decode("latin-1").lower(): value.decode("latin-1") for key, value in scope.get("headers", [])}
         host_header = headers.get("host", "")
         # TestClient uses synthetic hostnames; production requests must use loopback.
         test_request = client_host in _TEST_HOSTS or server_host in _TEST_HOSTS
