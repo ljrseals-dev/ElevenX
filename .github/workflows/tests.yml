@@ -28,6 +28,8 @@ jobs:
         run: python -m pytest -q
       - name: Verify vintage evidence harness self-check
         run: python -m elevenx.vintage_harness
+      - name: Verify CLI propagates injected failure and restored success
+        run: bash scripts/check_vintage_harness_cli.sh
 
   documented-install:
     runs-on: ubuntu-latest
