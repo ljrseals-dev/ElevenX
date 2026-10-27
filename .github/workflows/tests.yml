@@ -19,11 +19,32 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install model-free test dependencies
+      - name: Install package and test dependencies without resolving model stack
         run: |
           python -m pip install --upgrade pip
-          python -m pip install "numpy>=1.26,<3" "PyYAML>=6.0" "soundfile>=0.12" "scipy>=1.11"
-          python -m pip install "fastapi>=0.110" "uvicorn[standard]>=0.27" "python-multipart>=0.0.9" "httpx>=0.27" "pytest>=8.0"
           python -m pip install --no-deps -e .
-      - name: Run tests
+          python -m pip install pytest httpx fastapi soundfile numpy pyyaml python-multipart
+      - name: Run complete model-free suite
         run: python -m pytest -q
+      - name: Verify vintage evidence harness self-check
+        run: python -m elevenx.vintage_harness
+      - name: Verify CLI propagates injected failure and restored success
+        run: bash scripts/check_vintage_harness_cli.sh
+
+  documented-install:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Check documented editable install (dependency compatibility diagnostic)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"

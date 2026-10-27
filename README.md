@@ -46,7 +46,8 @@ ElevenX/
 │       └── api.py
 └── tests/
     ├── test_emotions.py
-    └── test_api.py
+    ├── test_api.py
+    └── test_vintage_harness.py
 ```
 
 ## Voice Studio
@@ -123,6 +124,12 @@ This release reduces one possible cause: concurrent requests competing for the s
 - 24 kHz audio has a 12 kHz Nyquist limit; it cannot guarantee a 20 kHz upper band.
 - No 99.97% similarity or sub-10-ms latency has been demonstrated.
 - HarmoniaCodec integration, spatial HRTF processing, and streaming are later milestones. The codec must not be used until trained weights and quality tests are available.
+
+## Vintage compressor evidence harness
+
+`elevenx.vintage_harness` provides local evidence-artifact helpers for vintage-compressor experiments: canonical configuration hashes, provenance manifests, JSONL event records with secret-key redaction, required-metric checks, weighted aggregation of already-normalized metrics, and calibration/holdout overlap rejection. It does not run audio processing, launch experiments, or validate compressor hardware. Its manifest status is explicitly `provenance_recorded_not_hardware_validated`; these tests do not change ElevenX's XTTS/audio-quality validation status.
+
+Run the focused evidence tests with `python -m pytest tests/test_vintage_harness.py -q`. After installing the project and test extra, `python -m elevenx.vintage_harness` runs the same focused tests and propagates pytest's exit code.
 
 ## Tests and verification
 
