@@ -2,7 +2,7 @@ name: ElevenX model-free tests
 
 on:
   push:
-    branches: [main, "fix/**"]
+    branches: [main, "fix/**", "feat/**"]
   pull_request:
   workflow_dispatch:
 
@@ -25,5 +25,7 @@ jobs:
           python -m pip install "numpy>=1.26,<3" "PyYAML>=6.0" "soundfile>=0.12" "scipy>=1.11"
           python -m pip install "fastapi>=0.110" "uvicorn[standard]>=0.27" "python-multipart>=0.0.9" "httpx>=0.27" "pytest>=8.0"
           python -m pip install --no-deps -e .
-      - name: Run tests
+      - name: Run complete model-free suite
         run: python -m pytest -q
+      - name: Verify vintage evidence harness self-check
+        run: python -m elevenx.vintage_harness
