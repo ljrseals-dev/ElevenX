@@ -68,7 +68,7 @@ def _cents_error(estimated_hz, expected_hz):
         (GLIDE_END_HZ, GLIDE_START_HZ, "descending"),
     ],
 )
-def test_f0_glide_frame_accuracy_and_octave_errors(start_hz, end_hz, direction):
+def test_f0_glide_frame_accuracy_and_octave_errors(start_hz, end_hz, direction, record_property):
     audio, _, truth = _glide_fixture(start_hz, end_hz)
     track = track_f0(
         audio, SAMPLE_RATE, min_f0_hz=F0_MIN_HZ, max_f0_hz=F0_MAX_HZ,
@@ -135,7 +135,7 @@ def test_f0_vibrato_tracks_a_defined_220_hz_modulation():
 
 
 @pytest.mark.parametrize("transition", ["silence_to_voice", "voice_to_silence"])
-def test_voicing_transition_respects_window_geometry(transition):
+def test_voicing_transition_respects_window_geometry(transition, record_property):
     duration = 1.0
     boundary = 0.5
     time = np.arange(int(duration * SAMPLE_RATE), dtype=np.float64) / SAMPLE_RATE
@@ -190,7 +190,7 @@ def test_compressor_full_scale_1khz_sine_is_finite_and_sample_peak_bounded():
     assert float(np.max(np.abs(output))) <= SAMPLE_PEAK_CEILING + SAMPLE_PEAK_TOLERANCE
 
 
-def test_compressor_vocal_like_fixture_exercises_sample_peak_ceiling():
+def test_compressor_vocal_like_fixture_exercises_sample_peak_ceiling(record_property):
     audio = _vocal_like_fixture()
     input_peak = float(np.max(np.abs(audio)))
     assert input_peak == pytest.approx(10.0 ** (-0.1 / 20.0), abs=2e-6)
@@ -254,7 +254,7 @@ def test_compressor_gain_reduction_respects_configured_cap():
     assert gain_db < -1.0
 
 
-def test_compressor_reports_no_true_peak_guarantee_on_vocal_like_fixture():
+def test_compressor_reports_no_true_peak_guarantee_on_vocal_like_fixture(record_property):
     audio = _vocal_like_fixture()
     settings = CompressorSettings(ratio=1.0, makeup_db=0.1)
     output = compress_vocal(audio, SAMPLE_RATE, settings)
