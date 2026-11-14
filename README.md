@@ -43,6 +43,7 @@ ElevenX/
 │       ├── __init__.py
 │       ├── emotions.py
 │       ├── engine.py
+│       ├── audio_processing.py
 │       ├── speakers.py
 │       └── api.py
 └── tests/
