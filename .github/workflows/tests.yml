@@ -2,7 +2,7 @@ name: ElevenX model-free tests
 
 on:
   push:
-    branches: [main, "fix/**"]
+    branches: [main, "fix/**", "integration/**"]
   pull_request:
   workflow_dispatch:
 
