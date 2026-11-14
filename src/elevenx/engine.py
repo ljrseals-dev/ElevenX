@@ -1,13 +1,14 @@
 """ElevenX synthesis orchestration with lazy model loading."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import yaml
 
+from .audio_processing import CompressorSettings, compress_vocal, track_f0
 from .emotions import Emotion, EmotionPreset
 from .speakers import SpeakerEncoder
 
@@ -18,6 +19,7 @@ class SynthesisResult:
     sample_rate: int
     emotion: str
     duration_seconds: float
+    analysis: dict[str, float | int] = field(default_factory=dict)
 
 
 class ElevenXEngine:
@@ -131,7 +133,27 @@ class ElevenXEngine:
         peak = float(np.max(np.abs(audio)))
         if peak > 1.0:
             audio = audio / peak
-        return SynthesisResult(audio, self.sample_rate, chosen.value, len(audio) / self.sample_rate)
+
+        processing_cfg = self.config.get("processing", {})
+        analysis: dict[str, float | int] = {}
+        if bool(processing_cfg.get("enabled", True)):
+            pitch = track_f0(audio, self.sample_rate)
+            voiced_f0 = pitch.f0_hz[pitch.voiced]
+            analysis = {
+                "f0_median_hz": float(np.median(voiced_f0)) if voiced_f0.size else 0.0,
+                "voiced_fraction": float(np.mean(pitch.voiced)),
+                "pitch_frames": int(pitch.f0_hz.size),
+            }
+            compressor_cfg = processing_cfg.get("compressor", {})
+            allowed = CompressorSettings.__dataclass_fields__.keys()
+            settings = CompressorSettings(**{
+                key: value for key, value in compressor_cfg.items() if key in allowed
+            })
+            audio = compress_vocal(audio, self.sample_rate, settings)
+
+        return SynthesisResult(
+            audio, self.sample_rate, chosen.value, len(audio) / self.sample_rate, analysis
+        )
 
     def save_wav(self, result: SynthesisResult, output_path: str | Path) -> Path:
         """Write output to a caller-selected local WAV path."""
