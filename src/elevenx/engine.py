@@ -19,6 +19,7 @@ class SynthesisResult:
     sample_rate: int
     emotion: str
     duration_seconds: float
+    analysis: dict[str, float | int] = field(default_factory=dict)
 
 
 class ElevenXEngine:
