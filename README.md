@@ -16,6 +16,7 @@ The slogan is branding, not a measured performance claim. This repository is a s
 ## Current milestone
 
 - Lazy-loaded XTTS-v2 synthesis using a reference recording.
+- Offline F0/voicing analysis and a bounded post-synthesis vocal compressor, configurable under `processing` in `config.yaml`.
 - Optional ECAPA-TDNN embeddings as a separate analysis feature; SpeechBrain is not required for normal XTTS synthesis.
 - Configurable presets named neutral, confident, empathetic, authoritative, and aggressive.
 - Local WAV output and an optional HTTP endpoint.
@@ -115,7 +116,7 @@ The reference must be 3–30 seconds. The script loads XTTS-v2, synthesizes a sh
 
 This release reduces one possible cause: concurrent requests competing for the same XTTS model/GPU and blocking the API event loop. It also uses the model's declared output sample rate where available. The app still synthesizes a complete WAV; it does **not** implement a real-time streaming playback queue. If the error continues while playing a downloaded WAV, test the WAV in another player and capture the complete error text plus whether it appears during synthesis or playback. That distinction is needed to identify a browser/audio-driver issue versus a synthesis-side issue.
 
-## Limitations and roadmap
+## Vocal analysis and dynamics\n\nThe synthesis result exposes `analysis` metadata (`f0_median_hz`, `voiced_fraction`, and `pitch_frames`). F0 is estimated with windowed normalized autocorrelation; it is a monophonic pitch estimate, not a polyphonic transcription or a verified singer-identity measure. The compressor is a deterministic offline feed-forward DSP stage with bounded threshold, ratio, attack, release, makeup, and maximum gain reduction. It runs after XTTS has produced a complete waveform; it is not a real-time audio callback. Set `processing.enabled: false` to bypass both analysis and compression.\n\nThe integration follows SingerFlow's published algorithm description rather than copying its source. The Neural-Compressor-Script repository currently provides a training harness, not a verified production inference/export artifact; its weights and runtime are therefore not silently loaded. The current compressor is a safe baseline until a trained checkpoint, stable inference interface, and audio-quality acceptance tests exist. HarmoniaCodec-Music remains disabled: its own status says it has no trained codec/synthesis weights and its causal streaming decoder is unverified. Its F0/phoneme-conditioned architecture is documented as a future research path, not represented as an active synthesis backend.\n\n## Limitations and roadmap
 
 - This milestone returns a completed waveform; it does not provide true streaming. WebSockets alone cannot guarantee sub-10-ms synthesis or end-to-end latency.
 - XTTS-v2 has no calibrated emotion control here. Presets change sampling and speed as style hints; audible results must be evaluated.
