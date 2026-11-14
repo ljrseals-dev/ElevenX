@@ -92,7 +92,9 @@ def track_f0(
             times.append((start + frame_size / 2) / sample_rate)
             continue
 
-        corr = np.correlate(frame, frame, mode="full")[frame_size - 1:]
+        fft_size = 1 << (2 * frame_size - 1).bit_length()
+        spectrum = np.fft.rfft(frame, n=fft_size)
+        corr = np.fft.irfft(spectrum * np.conjugate(spectrum), n=fft_size)[:frame_size]
         corr = corr / max(float(corr[0]), 1e-12)
         segment = corr[min_lag:max_lag + 1]
         if segment.size == 0:
