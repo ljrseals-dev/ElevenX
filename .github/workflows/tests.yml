@@ -23,7 +23,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --no-deps -e .
-          python -m pip install pytest httpx fastapi soundfile numpy pyyaml python-multipart
+          python -m pip install pytest httpx fastapi soundfile numpy scipy pyyaml python-multipart
       - name: Run complete model-free suite
         run: python -m pytest -q
       - name: Verify vintage evidence harness self-check
@@ -33,7 +33,7 @@ jobs:
       - name: Verify tests tree is clean after harness checks
         if: always()
         run: |
-          git diff --exit-code -- tests
+          git diff --exit-code HEAD -- tests
           test -z "$(git ls-files --others --exclude-standard -- tests)"
 
   documented-install:
