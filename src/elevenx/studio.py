@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Sequence, Union
+from typing import Protocol, Union
 
 import numpy as np
 
@@ -113,7 +113,7 @@ def build_harmony_arrangement(
 def render_arrangement(
     arrangement: VocalArrangement,
     renderer: VocalRenderer,
-    reference_audio: str | Path,
+    reference_audio: Union[str, Path],
 ) -> dict[str, tuple[np.ndarray, int]]:
     """Render each part independently and validate the renderer's output.
 
