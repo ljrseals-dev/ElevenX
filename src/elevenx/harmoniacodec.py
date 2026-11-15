@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Protocol, Union, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -43,9 +43,9 @@ class HarmoniaCodecReadiness:
 def check_harmonia_readiness(
     *,
     enabled: bool,
-    weights_path: str | Path | None,
-    report: CodecQualityReport | None,
-    expected_weights_sha256: str | None,
+    weights_path: Union[str, Path, None],
+    report: Union[CodecQualityReport, None],
+    expected_weights_sha256: Union[str, None],
 ) -> HarmoniaCodecReadiness:
     """Check prerequisites without loading weights or changing the active engine.
 
