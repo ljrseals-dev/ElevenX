@@ -23,9 +23,9 @@ def test_py39_guard_scans_runtime_and_checker_itself() -> None:
 @pytest.mark.parametrize(
     "source",
     [
-        "def f(x: int | None): pass\\n",
-        "def f(x: int | str): pass\\n",
-        "match value:\\n    case 1: pass\\n",
+        "def f(x: int | None): pass\n",
+        "def f(x: int | str): pass\n",
+        "match value:\n    case 1: pass\n",
     ],
 )
 def test_py39_guard_rejects_python_310_syntax(tmp_path: Path, source: str) -> None:
@@ -43,11 +43,11 @@ def test_py39_guard_rejects_python_310_syntax(tmp_path: Path, source: str) -> No
 @pytest.mark.parametrize(
     "source",
     [
-        "def f(x: list[int]): pass\\n",
-        "def f(x: dict[str, int]): pass\\n",
-        "import asyncio\\nasync def f(): await asyncio.to_thread(print)\\n",
-        "import functools\\n@functools.cache\\ndef f(): return 1\\n",
-        "def f(s: str): return s.removeprefix('x')\\n",
+        "def f(x: list[int]): pass\n",
+        "def f(x: dict[str, int]): pass\n",
+        "import asyncio\nasync def f(): await asyncio.to_thread(print)\n",
+        "import functools\n@functools.cache\ndef f(): return 1\n",
+        "def f(s: str): return s.removeprefix('x')\n",
     ],
 )
 def test_py39_guard_accepts_python_39_features(tmp_path: Path, source: str) -> None:
