@@ -33,8 +33,10 @@ jobs:
       - name: Verify working tree is clean after harness checks
         if: always()
         run: |
+          # Earlier pytest and module runs can create bytecode outside tests/.
+          find . -type d -name __pycache__ -prune -exec rm -rf {} +
           git diff --exit-code -- tests
-          test -z "$(git status --porcelain)"
+          test -z "$(git status --porcelain)" || { git status --short; exit 1; }
 
   documented-install:
     runs-on: ubuntu-latest
