@@ -1,5 +1,8 @@
 name: ElevenX model-free tests
 
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+
 on:
   push:
     branches: [main, "fix/**"]
