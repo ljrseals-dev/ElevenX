@@ -89,7 +89,7 @@ class ElevenXEngine:
     def synthesize(
         self,
         text: str,
-        reference_audio: str | Path,
+        reference_audio: Union[str, Path],
         language: Optional[str] = None,
         emotion: Optional[Union[Emotion, str]] = None,
     ) -> SynthesisResult:
