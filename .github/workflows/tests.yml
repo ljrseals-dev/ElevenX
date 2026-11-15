@@ -30,6 +30,9 @@ jobs:
         run: python -m elevenx.vintage_harness
       - name: Verify CLI propagates injected failure and restored success
         run: bash scripts/check_vintage_harness_cli.sh
+      - name: Verify tests tree is clean after harness checks
+        if: always()
+        run: git diff --exit-code -- tests
 
   documented-install:
     runs-on: ubuntu-latest
