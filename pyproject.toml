@@ -7,7 +7,6 @@ name = "elevenx"
 version = "0.1.2"
 description = "Local-first voice synthesis using XTTS-v2"
 readme = "README.md"
-# Python 3.8 remains a syntax-check target until XTTS distribution compatibility is verified.
 requires-python = ">=3.9,<3.13"
 dependencies = [
   "numpy>=1.21,<3",
@@ -35,15 +34,15 @@ dev = [
 ]
 
 [tool.black]
-target-version = ["py38"]
+target-version = ["py39"]
 line-length = 100
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py39"
 line-length = 100
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
