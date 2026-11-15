@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Protocol, Sequence, Union
 
 import numpy as np
 
@@ -63,7 +63,7 @@ class VocalRenderer(Protocol):
     """Adapter contract for a renderer capable of generating the requested part."""
 
     def render_part(
-        self, part: VocalPart, reference_audio: str | Path
+        self, part: VocalPart, reference_audio: Union[str, Path]
     ) -> tuple[np.ndarray, int]:
         """Return mono float audio and its actual sample rate."""
         ...
