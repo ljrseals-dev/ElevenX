@@ -1,7 +1,7 @@
 """Reference audio validation and optional ECAPA-TDNN embeddings."""
 from __future__ import annotations
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Tuple, Union
 from math import gcd
 import numpy as np
 import soundfile as sf
@@ -11,7 +11,7 @@ class SpeakerEncoder:
     def __init__(self, source: str = "speechbrain/spkrec-ecapa-voxceleb",
                  savedir: str = ".models/speechbrain-ecapa", device: str = "cpu") -> None:
         self.source, self.savedir, self.device = source, savedir, device
-        self._encoder: Any | None = None
+        self._encoder: Optional[Any] = None
 
     def _load(self) -> Any:
         if self._encoder is None:
@@ -24,9 +24,9 @@ class SpeakerEncoder:
         return self._encoder
 
     @staticmethod
-    def read_reference(path: str | Path, target_rate: int = 16000,
+    def read_reference(path: Union[str, Path], target_rate: int = 16000,
                        min_seconds: float = 3.0, max_seconds: float = 30.0
-                       ) -> tuple[np.ndarray, int]:
+                       ) -> Tuple[np.ndarray, int]:
         audio_path = Path(path)
         if not audio_path.is_file():
             raise FileNotFoundError(f"Speaker reference not found: {audio_path}")
@@ -49,7 +49,7 @@ class SpeakerEncoder:
             audio = audio / peak
         return np.asarray(audio, dtype=np.float32), int(rate)
 
-    def embed(self, path: str | Path) -> np.ndarray:
+    def embed(self, path: Union[str, Path]) -> np.ndarray:
         """Return a normalized ECAPA vector; it is not an XTTS conditioning latent."""
         import torch
         audio, rate = self.read_reference(path)

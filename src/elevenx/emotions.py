@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, Union
 
 class Emotion(str, Enum):
     NEUTRAL = "neutral"
@@ -18,7 +19,7 @@ class EmotionPreset:
     speed: float
 
     @classmethod
-    def from_mapping(cls, value: dict[str, float | int]) -> "EmotionPreset":
+    def from_mapping(cls, value: Dict[str, Union[float, int]]) -> "EmotionPreset":
         result = cls(float(value["temperature"]), int(value["top_k"]),
                      float(value["top_p"]), float(value["speed"]))
         if not 0.1 <= result.temperature <= 2.0:

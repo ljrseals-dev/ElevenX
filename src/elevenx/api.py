@@ -5,6 +5,7 @@ import os
 import tempfile
 import threading
 from pathlib import Path
+from typing import Dict, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from starlette.background import BackgroundTask
@@ -15,7 +16,7 @@ from .emotions import Emotion
 from .engine import ElevenXEngine
 
 app = FastAPI(title="ElevenX", version="0.1.1")
-_engine: ElevenXEngine | None = None
+_engine: Optional[ElevenXEngine] = None
 _engine_lock = threading.Lock()
 # XTTS models and GPU contexts are not assumed to be safe for concurrent calls.
 # Reject overlapping requests rather than allowing an unbounded queue to build up.
@@ -41,7 +42,7 @@ def web_app() -> FileResponse:
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> Dict[str, str]:
     return {"status": "ok", "service": "ElevenX", "interface": "web", "mode": "complete-waveform"}
 
 
@@ -50,13 +51,13 @@ async def synthesize(
     text: str = Form(..., max_length=5000),
     language: str = Form("en", min_length=2, max_length=12),
     emotion: str = Form("neutral"),
-    consent: bool = Form(...),
+    consent: Optional[bool] = Form(None),
     reference_audio: UploadFile = File(...),
 ) -> FileResponse:
     """Generate a WAV, avoiding overlapping model calls and cleaning temporary files."""
-    if not consent:
+    if consent is not True:
         await reference_audio.close()
-        raise HTTPException(status_code=403, detail="Confirm permission to use the reference voice")
+        raise HTTPException(status_code=400, detail="Confirm permission to use the reference voice")
     if not text.strip():
         await reference_audio.close()
         raise HTTPException(status_code=422, detail="Text must not be empty")
@@ -72,8 +73,8 @@ async def synthesize(
         await reference_audio.close()
         raise HTTPException(status_code=415, detail="Unsupported reference audio format")
 
-    reference_path: Path | None = None
-    output_path: Path | None = None
+    reference_path: Optional[Path] = None
+    output_path: Optional[Path] = None
     slot_acquired = False
     try:
         # Read in bounded chunks so the upload limit is enforced before writing to disk.
@@ -97,7 +98,7 @@ async def synthesize(
             raise HTTPException(
                 status_code=503,
                 detail="ElevenX is already synthesizing audio. Wait for it to finish, then retry.",
-                headers={"Retry-After": "3"},
+                headers={"Retry-After": "1"},
             )
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as handle:
