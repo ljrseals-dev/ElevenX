@@ -8,21 +8,27 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 test_file="tests/test_vintage_harness.py"
-backup="$(mktemp)"
-failure_log="$(mktemp)"
-success_log="$(mktemp)"
+tmp="$(mktemp -d)"
+backup="$tmp/backup"
+failure_log="$tmp/failure.log"
+success_log="$tmp/success.log"
 cp -- "$test_file" "$backup"
 
 cleanup() {
-  # Idempotent: restore source if backup still exists and remove temporary artifacts.
-  if [[ -f "$backup" ]]; then
-    cp -- "$backup" "$test_file"
-    rm -f -- "$backup"
+  status=$?
+  trap - EXIT INT TERM
+  cp -- "$backup" "$test_file" || status=1
+  if ! cmp -s -- "$backup" "$test_file"; then
+    echo "ERROR: test file restore failed byte-for-byte" >&2
+    status=1
   fi
-  rm -f -- "$failure_log" "$success_log"
-  rm -rf tests/__pycache__
+  rm -rf -- "$tmp"
+  find tests -name __pycache__ -type d -prune -exec rm -rf {} +
+  exit "$status"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Avoid stale bytecode while the source is temporarily mutated.
 export PYTHONDONTWRITEBYTECODE=1
@@ -43,8 +49,6 @@ if count != 1:
 path.write_text(source.replace(needle, replacement), encoding="utf-8")
 PY
 
-rm -rf tests/__pycache__
-
 set +e
 python -m elevenx.vintage_harness >"$failure_log" 2>&1
 failure_status=$?
@@ -64,8 +68,6 @@ echo "Verified injected assertion failure returns exit=$failure_status (9 passed
 
 # Restore the original test before checking the success path; keep the backup until EXIT.
 cp -- "$backup" "$test_file"
-rm -rf tests/__pycache__
-
 set +e
 python -m elevenx.vintage_harness >"$success_log" 2>&1
 success_status=$?
