@@ -32,7 +32,9 @@ jobs:
         run: bash scripts/check_vintage_harness_cli.sh
       - name: Verify tests tree is clean after harness checks
         if: always()
-        run: git diff --exit-code -- tests
+        run: |
+          git diff --exit-code -- tests
+          test -z "$(git ls-files --others --exclude-standard -- tests)"
 
   documented-install:
     runs-on: ubuntu-latest
